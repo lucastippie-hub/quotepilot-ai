@@ -35,7 +35,14 @@ export default async function handler(req, res) {
       })
     });
     const data = await response.json();
-    if (!response.ok) return res.status(response.status === 429 ? 429 : 502).json({ error: response.status === 429 ? 'AI service is busy or has reached its usage limit.' : 'AI request failed. Check API billing and model access.' });
+    if (!response.ok) {
+      if (response.status === 429) {
+        const quota = [data.error?.code, data.error?.type].includes('insufficient_quota');
+        const error = quota ? 'OpenAI API quota is exhausted. The site owner needs to check API credits and billing limits.' : 'OpenAI is rate-limiting requests. Please try again later.';
+        return res.status(429).json({ error });
+      }
+      return res.status(502).json({ error: 'AI request failed. Check API billing and model access.' });
+    }
     const text = (data.output || []).flatMap(x => x.content || []).filter(x => x.type === 'output_text').map(x => x.text).join('');
     let parsed; try { parsed = JSON.parse(text.replace(/^\s*```(?:json)?\s*|\s*```\s*$/g, '')); } catch { return res.status(502).json({ error: 'AI returned an unexpected response. Try again.' }); }
     const items = Array.isArray(parsed.items) ? parsed.items.slice(0, 6).filter(x => typeof x.description === 'string' && x.description.trim()).map(x => ({ description: x.description.slice(0, 140), qty: Math.min(10000, Math.max(0.01, Number(x.qty) || 1)), rate: 0 })) : [];
