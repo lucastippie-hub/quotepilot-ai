@@ -2,9 +2,177 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Turn field notes into itemized estimates with QuotePilot AI for home-service businesses."><title>QuotePilot AI | Estimates for home-service pros</title>
 <style>
 :root{--paper:#f6f4ec;--ink:#102f31;--green:#deef88;--line:#c7cebc;font:16px/1.55 "DM Sans",Arial,sans-serif;color:var(--ink);background:var(--paper)}*{box-sizing:border-box}body,figure,h1,h2,h3,p{margin:0}a{color:inherit;text-decoration:none}a:focus-visible{outline:3px solid #be6727;outline-offset:4px}.wrap{width:min(1220px,90%);margin:auto}header{border-bottom:1px solid var(--line)}nav,footer .wrap,.actions{display:flex;align-items:center;gap:24px}nav{min-height:78px}.logo{font-size:24px;letter-spacing:-1.5px;font-weight:850;margin-right:auto}.logo i{font-style:normal;background:var(--ink);color:var(--green);padding:3px 6px;border-radius:5px;font-size:.63em;vertical-align:middle;letter-spacing:0}.button{display:inline-block;background:var(--ink);color:white;padding:12px 20px;border-radius:7px;font-weight:700}.hero{display:grid;grid-template-columns:.94fr 1.06fr;gap:6%;align-items:center;padding:62px 0}.hero h1{font-size:clamp(54px,6.6vw,100px);letter-spacing:-.075em;line-height:.96;font-weight:800}.hero h1 em{display:block;color:#426951;font:italic 1.03em/.99 Georgia,serif;letter-spacing:-.065em}.hero p{max-width:420px;margin:26px 0;font-size:19px}.textlink{border-bottom:1px solid;font-weight:650}.shot{position:relative}.shot img,.story img{width:100%;display:block;object-fit:cover;border-radius:12px}.shot img{height:clamp(370px,38vw,510px)}.sample{position:absolute;bottom:18px;left:18px;background:var(--paper);padding:14px 20px;border-radius:8px;box-shadow:0 6px 24px #0002}.sample small{display:block;color:#46634a;font-weight:700}.sample b{font-size:19px}.band{background:var(--ink);color:var(--paper);padding:64px 0}.band h2,.story h2{font-size:clamp(36px,4vw,60px);letter-spacing:-.055em;line-height:1.04}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:35px}.cards article{border-top:2px solid #81958d;padding:20px 0}.cards h3{color:var(--green);font-size:23px;letter-spacing:-.035em}.cards p{max-width:340px;margin-top:9px;color:#e0e7e2}.story{display:grid;grid-template-columns:1fr 1fr;gap:8%;align-items:center;padding:76px 0}.story img{height:325px}.story p{margin:20px 0;max-width:440px}footer{border-top:1px solid var(--line);padding:24px 0}footer small{color:#455e55}@media(max-width:740px){nav{gap:14px;min-height:65px}nav .about{display:none}.hero,.story{grid-template-columns:1fr;gap:28px;padding:40px 0}.hero p{font-size:17px}.shot img{height:320px}.cards{grid-template-columns:1fr;gap:0}.band{padding:42px 0}.story img{height:235px}.actions{flex-wrap:wrap;gap:16px}.button{padding:10px 15px}footer small{display:none}}
+
+.demo {padding:72px 0 32px}
+.demo h2 {font-size:clamp(36px,4.5vw,68px);letter-spacing:-.062em;line-height:1.04}
+.intro {margin:16px 0 28px;max-width:64ch}
+.trades {display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.trade {padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;background:#fff;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+.trade img {display:block;width:100%;height:clamp(90px,14vw,180px);object-fit:cover}
+.trade span {display:flex;align-items:center;justify-content:space-between;gap:5px;padding:13px;font-weight:750}
+.trade[aria-pressed=true]{border-color:var(--ink);background:var(--green)}
+.trade[aria-pressed=true] span:after {content:"✓"}
+.estimator {display:grid;grid-template-columns:1.15fr 1fr;overflow:hidden;border:1px solid var(--line);border-radius:15px;margin-top:20px;background:white}
+.controls,.receipt {padding:clamp(20px,3.5vw,42px)}
+.controls h3,.receipt h3 {font-size:1.65rem;letter-spacing:-.045em;line-height:1.1;margin-bottom:12px}
+.controls p {color:#47635a;margin-bottom:16px}
+.controls label,.controls legend {font-weight:650}
+.controls input[type=text],.controls select {display:block;width:100%;margin:5px 0 14px;border:1px solid #a7b7ad;border-radius:6px;background:white;color:var(--ink);padding:10px;font:inherit}
+.controls fieldset {border:0;padding:0;margin:16px 0 0}
+.service {display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #dce2d8;cursor:pointer}
+.service input {width:19px;height:19px;accent-color:#234e40}
+.service b,.receipt-row b {margin-left:auto}
+.receipt {background:var(--ink);color:white;display:flex;flex-direction:column}
+.receipt small {color:#cfddcf}.receipt h3 {color:var(--green)}
+.receipt ul {padding:0;list-style:none;margin:20px 0 32px}
+.receipt-row {display:flex;gap:15px;padding:9px 0;border-bottom:1px solid #ffffff33}
+.total {margin-top:auto;border-top:1px solid #ffffff66;display:flex;justify-content:space-between;align-items:center;padding-top:16px}
+.total output {font-size:2rem;color:var(--green);font-weight:bold}
+#bill-to {overflow-wrap:anywhere}
+button:focus-visible,select:focus-visible,input:focus-visible {outline:3px solid #bd6127;outline-offset:3px}
+@media(hover:hover) and (prefers-reduced-motion:no-preference) {
+.button,.trade,.textlink {transition:transform .18s ease,box-shadow .18s ease}
+.button:hover,.trade:hover {transform:translateY(-3px);box-shadow:0 6px 16px #0d383023}
+.textlink:hover {transform:translateY(-2px)}
+}
+@media(max-width:680px){.demo{padding:42px 0 16px}.estimator{grid-template-columns:1fr}.trades{gap:6px}.trade span{padding:8px 5px;font-size:.875rem}.trade img{height:80px}}
 </style></head><body>
 <header><nav class="wrap" aria-label="Main"><a class="logo" href="/">QuotePilot <i>AI</i></a><a class="about" href="#workflow">How it works</a><a href="/login.html">Sign in</a><a class="button" href="/login.html">Get started</a></nav></header>
-<main><section class="wrap hero"><div><h1>From field notes <em>to a quote.</em></h1><p>Describe the job. Let AI draft the scope and line items. Add your prices and hand your customer a clear estimate.</p><div class="actions"><a class="button" href="/login.html">Build an estimate →</a><a class="textlink" href="#workflow">See how it works</a></div></div><figure class="shot"><img src="https://images.pexels.com/photos/24595769/pexels-photo-24595769.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Landscaper trimming a garden hedge" fetchpriority="high"><figcaption class="sample"><small>Sample landscaping estimate</small><b>Hedge trim &amp; cleanup</b></figcaption></figure></section>
-<section class="band" id="workflow"><div class="wrap"><h2>How a job becomes an estimate</h2><div class="cards"><article><h3>Describe the work</h3><p>Enter the service and what the customer needs. Draft with AI or write the scope yourself.</p></article><article><h3>Set your price</h3><p>Review the suggested items, enter quantities and rates, and include a deposit or discount.</p></article><article><h3>Follow up</h3><p>Print the estimate for your customer, then track its status in your quote pipeline.</p></article></div></div></section>
+<main><section class="wrap hero"><div><h1>From field notes <em>to a quote.</em></h1><p>Describe the job. Let AI draft the scope and line items. Add your prices and hand your customer a clear estimate.</p><div class="actions"><a class="button" href="/login.html">Build an estimate →</a><a class="textlink" href="#quote-demo">Try the quote builder</a></div></div><figure class="shot"><img src="https://images.pexels.com/photos/24595769/pexels-photo-24595769.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Landscaper trimming a garden hedge" fetchpriority="high"><figcaption class="sample"><small>Sample landscaping estimate</small><b>Hedge trim &amp; cleanup</b></figcaption></figure></section>
+<section class="band" id="workflow"><div class="wrap"><h2>How a job becomes an estimate</h2><div class="cards"><article><h3>1. Describe the work</h3><p>Enter the service and what the customer needs. Draft with AI or write the scope yourself.</p></article><article><h3>2. Set your price</h3><p>Review the suggested items, enter quantities and rates, and include a deposit or discount.</p></article><article><h3>3. Share and follow up</h3><p>Print the estimate for your customer, then track its status in your quote pipeline.</p></article></div></div></section>
+<section class="wrap demo" id="quote-demo" aria-labelledby="demo-title"><h2 id="demo-title">Build a sample quote.</h2><p class="intro">Choose a trade, pick a package, and adjust the work. The preview uses example prices so you can try it before signing in.</p><div class="trades" role="group" aria-label="Trade presets"><button type="button" class="trade" data-trade="0" aria-pressed="true"><img loading="lazy" src="https://images.pexels.com/photos/6728926/pexels-photo-6728926.jpeg?auto=compress&cs=tinysrgb&w=750" alt="Gardener mowing a lawn"><span>Landscaping</span></button><button type="button" class="trade" data-trade="1" aria-pressed="false"><img loading="lazy" src="https://images.pexels.com/photos/6873189/pexels-photo-6873189.jpeg?auto=compress&cs=tinysrgb&w=750" alt="Detailer covering a car in foam"><span>Car detailing</span></button><button type="button" class="trade" data-trade="2" aria-pressed="false"><img loading="lazy" src="https://images.pexels.com/photos/6474471/pexels-photo-6474471.jpeg?auto=compress&cs=tinysrgb&w=750" alt="Painter rolling an interior wall"><span>Interior painting</span></button></div>
+<div class="estimator"><div class="controls"><h3 id="job-name"></h3><p id="scope"></p><label>Customer name<input type="text" id="customer" placeholder="Sample customer" maxlength="100"></label><label>Service package<select id="package"><option value="1">Essentials · first service</option><option value="2">Standard · first two services</option><option value="4">Complete · all services</option><option value="custom" disabled>Custom selection</option></select></label><fieldset><legend>Included services</legend><div id="services"></div></fieldset></div>
+<div class="receipt"><h3>Quote preview</h3><small id="bill-to"></small><ul id="items"></ul><div class="total"><strong>Estimate total</strong><output id="amount" aria-live="polite"></output></div><small>Sample pricing in USD, before tax.</small></div></div></section>
 <section class="wrap story"><img src="https://images.pexels.com/photos/6474471/pexels-photo-6474471.jpeg?auto=compress&cs=tinysrgb&w=1000" alt="Painter using a roller on an interior wall" loading="lazy"><div><h2>Pick up where the job left off.</h2><p>Keep estimates, customer details, and business branding in your account. Open your workspace when you’re ready to price the next job.</p><a class="textlink" href="/workspace.html">Open workspace →</a></div></section></main>
-<footer><div class="wrap"><a class="logo" href="/">QuotePilot <i>AI</i></a><small>Estimating for home-service businesses</small><a href="/login.html">Sign in</a></div></footer></body></html>
+<footer><div class="wrap"><a class="logo" href="/">QuotePilot <i>AI</i></a><small>Estimating for home-service businesses</small><a href="/login.html">Sign in</a></div></footer><script type="module">
+const presets = [
+  {
+    "name": "Landscaping",
+    "title": "Yard maintenance",
+    "description": "Start with a mow, then add the finishing work the yard needs.",
+    "services": [
+      [
+        "Mow the lawn",
+        60
+      ],
+      [
+        "Edge sidewalks",
+        25
+      ],
+      [
+        "Trim hedges",
+        80
+      ],
+      [
+        "Haul away clippings",
+        35
+      ]
+    ]
+  },
+  {
+    "name": "Car detailing",
+    "title": "Vehicle detail",
+    "description": "Combine exterior and interior work to match the condition of the vehicle.",
+    "services": [
+      [
+        "Exterior wash",
+        55
+      ],
+      [
+        "Vacuum interior",
+        40
+      ],
+      [
+        "Clean upholstery",
+        75
+      ],
+      [
+        "Wax finish",
+        60
+      ]
+    ]
+  },
+  {
+    "name": "Interior painting",
+    "title": "Room repaint",
+    "description": "Build the scope room by room, from surface prep to the final coat.",
+    "services": [
+      [
+        "Paint walls",
+        240
+      ],
+      [
+        "Patch small holes",
+        55
+      ],
+      [
+        "Paint trim",
+        95
+      ],
+      [
+        "Paint ceiling",
+        110
+      ]
+    ]
+  }
+];
+const field = id => document.getElementById(id);
+const money = value => value.toLocaleString('en-US',{style:'currency',currency:'USD'});
+const packageSelect = field('package');
+let currentTrade = 0;
+function updatePreview() {
+  const services = presets[currentTrade].services;
+  const checks = Array.from(field('services').querySelectorAll('input'));
+  const chosen = services.filter((_,index) => checks[index].checked);
+  const packageSize = [1,2,4].find(size => checks.every((check,i) => check.checked === (i < size)));
+  packageSelect.value = packageSize || 'custom';
+  field('items').replaceChildren();
+  for (const [name,price] of chosen) {
+    const row = document.createElement('li');
+    row.className = 'receipt-row';
+    const cost = document.createElement('b');
+    cost.textContent = money(price);
+    row.append(name,cost);
+    field('items').append(row);
+  }
+  if (!chosen.length) {
+    const empty = document.createElement('li');
+    empty.textContent = 'Choose a service to start your quote.';
+    field('items').append(empty);
+  }
+  field('amount').textContent = money(chosen.reduce((sum,item) => sum + item[1],0));
+}
+function setTrade(index) {
+  currentTrade = index;
+  const preset = presets[index];
+  field('job-name').textContent = preset.title;
+  field('scope').textContent = preset.description;
+  document.querySelectorAll('.trade').forEach((button,i) => button.setAttribute('aria-pressed',String(i === index)));
+  field('services').replaceChildren();
+  preset.services.forEach(([name,price],i) => {
+    const label = document.createElement('label');
+    label.className = 'service';
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.checked = i < 2;
+    const cost = document.createElement('b');
+    cost.textContent = money(price);
+    label.append(check,name,cost);
+    field('services').append(label);
+  });
+  updatePreview();
+}
+document.querySelectorAll('.trade').forEach(button => button.addEventListener('click',() => setTrade(Number(button.dataset.trade))));
+packageSelect.addEventListener('change',() => {
+  const size = Number(packageSelect.value);
+  field('services').querySelectorAll('input').forEach((check,i) => check.checked = i < size);
+  updatePreview();
+});
+field('services').addEventListener('change',updatePreview);
+function updateCustomer() {
+  field('bill-to').textContent = 'Prepared for ' + (field('customer').value.trim() || 'Sample customer');
+}
+field('customer').addEventListener('input',updateCustomer);
+setTrade(0);
+updateCustomer();
+</script></body></html>
