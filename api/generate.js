@@ -3,6 +3,11 @@ const buckets = new Map();
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'POST required' }); }
+  // Do not expose an unrestricted paid AI endpoint to the public.
+  // Enable only after user authentication, persistent per-user quotas and billing controls exist.
+  if (process.env.QUOTEPILOT_AI_PUBLIC_ENABLED !== 'true') {
+    return res.status(503).json({ error: 'AI generation is temporarily unavailable while secure customer access is being configured. The manual quote builder still works.' });
+  }
   const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
   const now = Date.now();
   for (const [key, value] of buckets) if (now - value.start > 60000) buckets.delete(key);
