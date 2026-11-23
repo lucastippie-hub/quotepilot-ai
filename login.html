@@ -5,8 +5,8 @@ let config;try{const r=await fetch('/api/auth-config');config=await r.json()}cat
 if(!config?.url||!config?.anonKey){msg.textContent='Accounts are not configured yet. The site owner must connect Supabase.';document.querySelectorAll('button').forEach(b=>b.disabled=true)}
 else{
  const sb=createClient(config.url,config.anonKey);
- const {data:{session}}=await sb.auth.getSession();if(session)location.replace('/');
- document.getElementById('form').onsubmit=async e=>{e.preventDefault();msg.textContent='Signing in…';const {error}=await sb.auth.signInWithPassword({email:email.value,password:password.value});msg.textContent=error?.message||'Signed in';if(!error)location.replace('/')};
+ const {data:{session}}=await sb.auth.getSession();if(session)location.replace('/workspace.html');
+ document.getElementById('form').onsubmit=async e=>{e.preventDefault();msg.textContent='Signing in…';const {error}=await sb.auth.signInWithPassword({email:email.value,password:password.value});msg.textContent=error?.message||'Signed in';if(!error)location.replace('/workspace.html')};
  document.getElementById('signup').onclick=async()=>{msg.textContent='Creating account…';const {error}=await sb.auth.signUp({email:email.value,password:password.value,options:{emailRedirectTo:location.origin+'/login.html'}});msg.textContent=error?.message||'Check your email to confirm your account.'};
  document.getElementById('reset').onclick=async()=>{if(!email.value){msg.textContent='Enter your email first.';return}const {error}=await sb.auth.resetPasswordForEmail(email.value,{redirectTo:location.origin+'/login.html'});msg.textContent=error?.message||'If an account exists, a reset email will arrive. Follow the link to continue.'};
  const {data:{subscription}}=sb.auth.onAuthStateChange(async(event)=>{if(event==='PASSWORD_RECOVERY'){const newPass=prompt('Enter a new password (at least 8 characters)');if(newPass&&newPass.length>=8){const {error}=await sb.auth.updateUser({password:newPass});msg.textContent=error?.message||'Password updated. You can sign in now.'}}});window.addEventListener('pagehide',()=>subscription.unsubscribe());
