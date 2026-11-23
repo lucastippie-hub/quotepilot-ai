@@ -1,20 +1,12 @@
 // Server-side OpenAI integration. Never expose OPENAI_API_KEY to browser code.
-const buckets = new Map();
+
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') { res.setHeader('Allow', 'POST'); return res.status(405).json({ error: 'POST required' }); }
-  // Do not expose an unrestricted paid AI endpoint to the public.
-  // Enable only after user authentication, persistent per-user quotas and billing controls exist.
-  if (process.env.QUOTEPILOT_AI_PUBLIC_ENABLED !== 'true') {
-    return res.status(503).json({ error: 'AI generation is temporarily unavailable while secure customer access is being configured. The manual quote builder still works.' });
+  const authorization = req.headers.authorization || '';
+  if (!/^Bearer [^\s]+$/i.test(authorization)) {
+    return res.status(401).json({ error: 'Sign in to draft a quote.' });
   }
-  const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
-  const now = Date.now();
-  for (const [key, value] of buckets) if (now - value.start > 60000) buckets.delete(key);
-  const bucket = buckets.get(ip) || { start: now, count: 0 };
-  if (now - bucket.start > 60000) { bucket.start = now; bucket.count = 0; }
-  bucket.count++; buckets.set(ip, bucket);
-  if (bucket.count > 5) return res.status(429).json({ error: 'Too many requests. Try again in a minute.' });
   if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'AI is not configured on the server.' });
   const { service, scope, location } = req.body || {};
   if (typeof service !== 'string' || typeof scope !== 'string' || typeof location !== 'string' ||
@@ -22,8 +14,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Enter a job description under 1,800 characters.' });
   }
   try {
+    const reservation = await fetch(new URL('/rest/v1/rpc/reserve_ai_draft', process.env.SUPABASE_URL), {
+      method: 'POST',
+      headers: { Authorization: authorization, apikey: process.env.SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: '{}',
+      signal: AbortSignal.timeout(8000)
+    });
+    if ([401,403].includes(reservation.status)) return res.status(401).json({ error: 'Sign in again to draft a quote.' });
+    if (!reservation.ok) return res.status(503).json({ error: 'Usage checks are temporarily unavailable.' });
+    if (await reservation.json() !== true) return res.status(429).json({ error: 'The daily draft limit has been reached. Try again tomorrow (UTC).' });
     const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
+      signal: AbortSignal.timeout(30000),
       headers: { 'Authorization': 'Bearer ' + process.env.OPENAI_API_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'gpt-4.1-mini',
