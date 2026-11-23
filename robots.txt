@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://quotepilot-ai-sigma.vercel.app/sitemap.xml
